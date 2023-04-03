@@ -1,0 +1,153 @@
+package cmd
+
+import (
+	_ "embed"
+	"fmt"
+	"io"
+	"os"
+	"strings"
+	"text/template"
+	"unicode"
+
+	"github.com/spf13/cobra"
+)
+
+//go:embed assets/endpoint.tmpl
+var endpoint string
+
+//go:embed assets/service.tmpl
+var service string
+
+//go:embed assets/schema.tmpl
+var schema string
+
+type ApiTemp struct {
+	ProjectName string
+	ApiName     string
+	Path        string
+	RouterPath  string
+	Desc        string
+	Tag         string
+	Method      string
+	GenCommand  string
+}
+
+var a = ApiTemp{}
+
+var newApiCommand = &cobra.Command{
+	Use:   "new",
+	Short: "新建 api",
+	Run: func(cmd *cobra.Command, args []string) {
+		f, err := os.Open("go.mod")
+		if err != nil {
+			panic(err)
+		}
+		all, err := io.ReadAll(f)
+		if err != nil {
+			panic(err)
+		}
+		s := strings.Split(string(all), "\n")
+		for _, v := range s {
+			vv := strings.Split(v, " ")
+			if len(vv) == 2 && vv[0] == "module" {
+				a.ProjectName = vv[1]
+				break
+			}
+		}
+
+		method := strings.ToUpper(a.Method)
+		a.Method = method
+		a.RouterPath = strings.ReplaceAll(strings.ReplaceAll(a.Path, "{", ":"), "}", "")
+
+		a.GenCommand = strings.Join(os.Args, " ")
+
+		genEndpoint(a)
+		genService(a)
+		genSchema(a)
+	},
+}
+
+func genEndpoint(a ApiTemp) {
+	glob, err := template.New("ep").Parse(endpoint)
+	if err != nil {
+		panic(err)
+	}
+	file, err := os.OpenFile(fmt.Sprintf("app/endpoints/%s_ep.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+	}
+	os.Truncate(fmt.Sprintf("app/endpoints/%s_ep.go", CamelCaseToUdnderscore(a.ApiName)), 0)
+	//及时关闭file句柄
+	defer file.Close()
+	err = glob.Execute(file, a)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func genService(a ApiTemp) {
+	if PathExists(fmt.Sprintf("app/services/%s_srv.go", CamelCaseToUdnderscore(a.ApiName))) {
+		return
+	}
+	glob, err := template.New("srv").Parse(service)
+	if err != nil {
+		panic(err)
+	}
+	file, err := os.OpenFile(fmt.Sprintf("app/services/%s_srv.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+	}
+	//及时关闭file句柄
+	defer file.Close()
+	err = glob.Execute(file, a)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func genSchema(a ApiTemp) {
+	if PathExists(fmt.Sprintf("app/services/%s_schema.go", CamelCaseToUdnderscore(a.ApiName))) {
+		return
+	}
+	glob, err := template.New("schema").Parse(schema)
+	if err != nil {
+		panic(err)
+	}
+	file, err := os.OpenFile(fmt.Sprintf("app/services/%s_schema.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
+	if err != nil {
+		panic(err)
+	}
+	//及时关闭file句柄
+	defer file.Close()
+	err = glob.Execute(file, a)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func PathExists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
+}
+
+func CamelCaseToUdnderscore(s string) string {
+	var output []rune
+	for i, r := range s {
+		if i == 0 {
+			output = append(output, unicode.ToLower(r))
+		} else {
+			if unicode.IsUpper(r) {
+				output = append(output, '_')
+			}
+
+			output = append(output, unicode.ToLower(r))
+		}
+	}
+	return string(output)
+}
