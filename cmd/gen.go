@@ -68,6 +68,7 @@ var genApiCommand = &cobra.Command{
 			panic(err)
 		}
 
+		var total int64
 		for _, v := range apiDesc.Group {
 			for _, api := range v.Apis {
 				var apiTemp = ApiTemp{
@@ -79,12 +80,37 @@ var genApiCommand = &cobra.Command{
 					GenCommand:  strings.Join(os.Args, " "),
 					Desc:        api.Desc,
 					Tag:         v.Name,
+					PathVar:     GetPathVar(api.Path),
 				}
-				fmt.Printf("gen: %+v\n", apiTemp)
+				fmt.Printf("正在生成: %s\t%s\t%s\t%s\n", apiTemp.ApiName, apiTemp.Method, apiTemp.Path, apiTemp.Desc)
 				genEndpoint(apiTemp)
 				genService(apiTemp)
 				genSchema(apiTemp)
+				total++
 			}
 		}
+		fmt.Printf("生成完成，共 %d 个接口\n", total)
 	},
+}
+
+func GetPathVar(path string) []string {
+	var paths []string
+	var tmpPathVar string
+	var catch bool
+	for _, v := range path {
+		if catch && v == '}' {
+			catch = false
+			paths = append(paths, tmpPathVar)
+			tmpPathVar = ""
+			continue
+		}
+		if v == '{' {
+			catch = true
+			continue
+		}
+		if catch {
+			tmpPathVar += string(v)
+		}
+	}
+	return paths
 }
