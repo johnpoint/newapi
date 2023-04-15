@@ -133,7 +133,7 @@ func genService(a ApiTemp) {
 }
 
 func genSchema(a ApiTemp) {
-	if PathExists(fmt.Sprintf("app/services/%s_schema.go", CamelCaseToUdnderscore(a.ApiName))) {
+	if PathExists(fmt.Sprintf("app/schemas/%s_schema.go", CamelCaseToUdnderscore(a.ApiName))) {
 		return
 	}
 	glob, err := template.New("schema").Parse(schema)
