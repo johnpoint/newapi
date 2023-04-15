@@ -140,7 +140,7 @@ func genSchema(a ApiTemp) {
 	if err != nil {
 		panic(err)
 	}
-	file, err := os.OpenFile(fmt.Sprintf("app/services/%s_schema.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(fmt.Sprintf("app/schemas/%s_schema.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 	}
