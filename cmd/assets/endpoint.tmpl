@@ -9,7 +9,9 @@ import (
 	"{{.ProjectName}}/app"
 	"{{.ProjectName}}/app/services"
 	"{{.ProjectName}}/infra"
+	"{{.ProjectName}}/pkg/log"
 	"github.com/gin-gonic/gin"
+	"go.uber.org/zap"
 )
 
 type {{.ApiName}}Endpoint struct {
@@ -46,6 +48,7 @@ func (e *{{.ApiName}}Endpoint) Handle(c *gin.Context) {
 
 	resp, err := services.{{.ApiName}}Service(c, &req)
 	if err != nil {
+		log.Error("{{.ApiName}}Service", zap.Error(err))
 		returnErrorMsg(c, err)
 		return
 	}
