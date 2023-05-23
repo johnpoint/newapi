@@ -6,58 +6,29 @@
 package endpoints
 
 import (
-	"{{.ProjectName}}/app"
-	"{{.ProjectName}}/app/schemas"
 	"{{.ProjectName}}/app/services"
-	"{{.ProjectName}}/infra"
-	"{{.ProjectName}}/pkg/log"
 	"github.com/gin-gonic/gin"
-	"go.uber.org/zap"
+	ginBoot "github.com/johnpoint/go-bootstrap/gin"
 )
 
 type {{.ApiName}}Endpoint struct {
-	MiddlewareFunc []gin.HandlerFunc
-}
-
-func (e *{{.ApiName}}Endpoint) Middleware() []gin.HandlerFunc {
-	return e.MiddlewareFunc
-}
-
-func (e *{{.ApiName}}Endpoint) SetMiddleware(middleware []gin.HandlerFunc) {
-	e.MiddlewareFunc = middleware
+	ginBoot.BaseEndpoint
+    ginBoot.JsonCodecEp
+    ginBoot.{{.Method}}Endpoint
 }
 
 func (e *{{.ApiName}}Endpoint) Path() string {
 	return "{{.RouterPath}}"
 }
 
-func (e *{{.ApiName}}Endpoint) Method() string {
-	return "{{.Method}}"
-}
-
-func (e *{{.ApiName}}Endpoint) parseRequest(c *gin.Context) (req schemas.{{.ApiName}}ServiceReq, err error) {
-	err = c.ShouldBind(&req)
-	return
-}
-
-func (e *{{.ApiName}}Endpoint) Handle(c *gin.Context) {
-	req, err := e.parseRequest(c)
-	if err != nil {
-		returnErrorMsg(c, infra.ErrAuthInfoInvalid)
-		return
-	}
-
-	resp, err := services.{{.ApiName}}Service(c, &req)
-	if err != nil {
-		log.Error("{{.ApiName}}Service", zap.Error(err))
-		returnErrorMsg(c, err)
-		return
-	}
-	returnSuccessMsg(c, "", resp)
+func (e *{{.ApiName}}Endpoint) HandlerFunc() gin.HandlerFunc {
+	return ginBoot.Endpoint(e, services.{{.ApiName}}Service)
 }
 
 func init() {
 	var endpoint {{.ApiName}}Endpoint
 	endpoint.SetMiddleware(services.{{.ApiName}}SetMiddleware())
-	app.ApiServer.RegisterEndpoints(&endpoint)
+	if err := ginBoot.Server().AddEndpoint(&endpoint); err != nil {
+        panic(err)
+    }
 }
