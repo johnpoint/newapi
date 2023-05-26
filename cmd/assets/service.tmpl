@@ -4,7 +4,8 @@ package services
 
 import (
 	"github.com/gin-gonic/gin"
-	"{{.ProjectName}}/app/schemas"
+	"context"
+	"{{.ProjectName}}/schemas"
 )
 
 func {{.ApiName}}SetMiddleware() []gin.HandlerFunc {
@@ -23,7 +24,7 @@ func {{.ApiName}}SetMiddleware() []gin.HandlerFunc {
 {{- range $index,$val := .PathVar}}{{if eq $index 0}}
 {{end}}//	@Param			{{$val}}		path		string	true	"{{$val}}"{{- end}}
 //	@Success		200		{object}	schemas.{{.ApiName}}ServiceResp
-func {{.ApiName}}Service(c *gin.Context, req *schemas.{{.ApiName}}ServiceReq) (resp *schemas.{{.ApiName}}ServiceResp, err error) {
+func {{.ApiName}}Service(c context.Context, req *schemas.{{.ApiName}}ServiceReq) (resp *schemas.{{.ApiName}}ServiceResp, err error) {
     resp = new(schemas.{{.ApiName}}ServiceResp)
 	return
 }

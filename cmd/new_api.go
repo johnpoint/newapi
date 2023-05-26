@@ -69,8 +69,8 @@ var newApiCommand = &cobra.Command{
 }
 
 func genEndpoint(a ApiTemp) {
-	if PathExists(fmt.Sprintf("app/endpoints/%s_ep.go", CamelCaseToUdnderscore(a.ApiName))) {
-		rf, err := os.OpenFile(fmt.Sprintf("app/endpoints/%s_ep.go", CamelCaseToUdnderscore(a.ApiName)), os.O_RDONLY, 0666)
+	if PathExists(fmt.Sprintf("endpoints/%s_ep.go", CamelCaseToUdnderscore(a.ApiName))) {
+		rf, err := os.OpenFile(fmt.Sprintf("endpoints/%s_ep.go", CamelCaseToUdnderscore(a.ApiName)), os.O_RDONLY, 0666)
 		if err != nil {
 			panic(err)
 		}
@@ -87,11 +87,11 @@ func genEndpoint(a ApiTemp) {
 	if err != nil {
 		panic(err)
 	}
-	file, err := os.OpenFile(fmt.Sprintf("app/endpoints/%s_ep.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(fmt.Sprintf("endpoints/%s_ep.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 	}
-	os.Truncate(fmt.Sprintf("app/endpoints/%s_ep.go", CamelCaseToUdnderscore(a.ApiName)), 0)
+	os.Truncate(fmt.Sprintf("endpoints/%s_ep.go", CamelCaseToUdnderscore(a.ApiName)), 0)
 	//及时关闭file句柄
 	defer file.Close()
 	err = glob.Execute(file, a)
@@ -101,8 +101,8 @@ func genEndpoint(a ApiTemp) {
 }
 
 func genService(a ApiTemp) {
-	if PathExists(fmt.Sprintf("app/services/%s_srv.go", CamelCaseToUdnderscore(a.ApiName))) {
-		rf, err := os.OpenFile(fmt.Sprintf("app/services/%s_srv.go", CamelCaseToUdnderscore(a.ApiName)), os.O_RDONLY, 0666)
+	if PathExists(fmt.Sprintf("services/%s_srv.go", CamelCaseToUdnderscore(a.ApiName))) {
+		rf, err := os.OpenFile(fmt.Sprintf("services/%s_srv.go", CamelCaseToUdnderscore(a.ApiName)), os.O_RDONLY, 0666)
 		if err != nil {
 			panic(err)
 		}
@@ -119,8 +119,8 @@ func genService(a ApiTemp) {
 	if err != nil {
 		panic(err)
 	}
-	os.Truncate(fmt.Sprintf("app/services/%s_srv.go", CamelCaseToUdnderscore(a.ApiName)), 0)
-	file, err := os.OpenFile(fmt.Sprintf("app/services/%s_srv.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
+	os.Truncate(fmt.Sprintf("services/%s_srv.go", CamelCaseToUdnderscore(a.ApiName)), 0)
+	file, err := os.OpenFile(fmt.Sprintf("services/%s_srv.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 	}
@@ -133,14 +133,14 @@ func genService(a ApiTemp) {
 }
 
 func genSchema(a ApiTemp) {
-	if PathExists(fmt.Sprintf("app/schemas/%s_schema.go", CamelCaseToUdnderscore(a.ApiName))) {
+	if PathExists(fmt.Sprintf("schemas/%s_schema.go", CamelCaseToUdnderscore(a.ApiName))) {
 		return
 	}
 	glob, err := template.New("schema").Parse(schema)
 	if err != nil {
 		panic(err)
 	}
-	file, err := os.OpenFile(fmt.Sprintf("app/schemas/%s_schema.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(fmt.Sprintf("schemas/%s_schema.go", CamelCaseToUdnderscore(a.ApiName)), os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		panic(err)
 	}
