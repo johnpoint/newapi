@@ -6,32 +6,17 @@ import (
 	"strings"
 
 	"github.com/spf13/cobra"
-	"gopkg.in/yaml.v2"
+
+	"newapi/internal/generator"
 )
 
 var configFile string
-
-type ApiDesc struct {
-	Group []ApiGroup `yaml:"group"`
-}
-
-type ApiGroup struct {
-	Name string `yaml:"name"`
-	Apis []Api  `yaml:"apis"`
-}
-
-type Api struct {
-	ApiName string `yaml:"name"`
-	Path    string `yaml:"path"`
-	Desc    string `yaml:"desc"`
-	Method  string `yaml:"method"`
-}
 
 var genApiCommand = &cobra.Command{
 	Use:   "gen",
 	Short: "生成 api",
 	Run: func(cmd *cobra.Command, args []string) {
-		projectName, err := readModuleName()
+		projectName, err := generator.ReadModuleName()
 		if err != nil {
 			fatal("%v", err)
 		}
@@ -41,15 +26,15 @@ var genApiCommand = &cobra.Command{
 			fatal("读取配置文件失败: %v", err)
 		}
 
-		var apiDesc ApiDesc
-		if err := yaml.Unmarshal(config, &apiDesc); err != nil {
+		apiDesc, err := generator.ParseConfig(config)
+		if err != nil {
 			fatal("解析配置文件失败: %v", err)
 		}
 
 		var total int64
 		for _, v := range apiDesc.Group {
 			for _, api := range v.Apis {
-				apiTemp := ApiTemp{
+				a := generator.ApiTemp{
 					ProjectName: projectName,
 					ApiName:     api.ApiName,
 					Method:      strings.ToUpper(api.Method),
@@ -58,16 +43,16 @@ var genApiCommand = &cobra.Command{
 					GenCommand:  strings.Join(os.Args, " "),
 					Desc:        api.Desc,
 					Tag:         v.Name,
-					PathVar:     GetPathVar(api.Path),
+					PathVar:     generator.GetPathVar(api.Path),
 				}
-				fmt.Printf("正在生成: %s\t%s\t%s\t%s\n", apiTemp.ApiName, apiTemp.Method, apiTemp.Path, apiTemp.Desc)
-				if err := genEndpoint(apiTemp); err != nil {
+				fmt.Printf("正在生成: %s\t%s\t%s\t%s\n", a.ApiName, a.Method, a.Path, a.Desc)
+				if err := generator.GenEndpoint(a); err != nil {
 					fatal("%v", err)
 				}
-				if err := genService(apiTemp); err != nil {
+				if err := generator.GenService(a); err != nil {
 					fatal("%v", err)
 				}
-				if err := genSchema(apiTemp); err != nil {
+				if err := generator.GenSchema(a); err != nil {
 					fatal("%v", err)
 				}
 				total++
