@@ -1,5 +1,4 @@
 .idea
 newapi
 config_local.json
-go.sum
 test/
