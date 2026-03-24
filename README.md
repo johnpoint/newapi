@@ -26,10 +26,45 @@ go install newapi@latest
 或者克隆后本地构建：
 
 ```bash
-git clone https://github.com/your-org/newapi.git
+git clone https://github.com/johnpoint/newapi.git
 cd newapi
 go build -o newapi .
 ```
+
+## 使用 Docker
+
+### 构建镜像
+
+```bash
+docker build -t newapi .
+```
+
+### 运行
+
+> 将宿主机的 Go 项目目录挂载到容器内的 `/workspace`，项目根目录须包含 `go.mod`。
+
+**`new` 命令 — 生成单个 API：**
+
+```bash
+docker run --rm -v $(pwd):/workspace newapi new \
+  -n GetUser \
+  -d "获取用户信息" \
+  -t user \
+  -m get \
+  -p /user/{id}
+```
+
+**`gen` 命令 — 从 YAML 批量生成 API：**
+
+```bash
+docker run --rm -v $(pwd):/workspace newapi gen -c api.yaml
+```
+
+> Windows PowerShell 用户请将 `$(pwd)` 替换为 `${PWD}`：
+>
+> ```powershell
+> docker run --rm -v ${PWD}:/workspace newapi gen -c api.yaml
+> ```
 
 ## 使用
 
