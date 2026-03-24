@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
@@ -10,7 +9,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-var file string
+var configFile string
 
 type ApiDesc struct {
 	Group []ApiGroup `yaml:"group"`
@@ -32,46 +31,25 @@ var genApiCommand = &cobra.Command{
 	Use:   "gen",
 	Short: "生成 api",
 	Run: func(cmd *cobra.Command, args []string) {
-		f, err := os.Open("go.mod")
+		projectName, err := readModuleName()
 		if err != nil {
-			panic(err)
-		}
-		defer f.Close()
-		all, err := io.ReadAll(f)
-		if err != nil {
-			panic(err)
+			fatal("%v", err)
 		}
 
-		var projectName string
-
-		s := strings.Split(string(all), "\n")
-		for _, v := range s {
-			vv := strings.Split(v, " ")
-			if len(vv) == 2 && vv[0] == "module" {
-				projectName = vv[1]
-				break
-			}
+		config, err := os.ReadFile(configFile)
+		if err != nil {
+			fatal("读取配置文件失败: %v", err)
 		}
 
-		cf, err := os.Open(file)
-		if err != nil {
-			panic(err)
-		}
-		defer cf.Close()
-		config, err := io.ReadAll(cf)
-		if err != nil {
-			panic(err)
-		}
 		var apiDesc ApiDesc
-		err = yaml.Unmarshal(config, &apiDesc)
-		if err != nil {
-			panic(err)
+		if err := yaml.Unmarshal(config, &apiDesc); err != nil {
+			fatal("解析配置文件失败: %v", err)
 		}
 
 		var total int64
 		for _, v := range apiDesc.Group {
 			for _, api := range v.Apis {
-				var apiTemp = ApiTemp{
+				apiTemp := ApiTemp{
 					ProjectName: projectName,
 					ApiName:     api.ApiName,
 					Method:      strings.ToUpper(api.Method),
@@ -83,34 +61,18 @@ var genApiCommand = &cobra.Command{
 					PathVar:     GetPathVar(api.Path),
 				}
 				fmt.Printf("正在生成: %s\t%s\t%s\t%s\n", apiTemp.ApiName, apiTemp.Method, apiTemp.Path, apiTemp.Desc)
-				genEndpoint(apiTemp)
-				genService(apiTemp)
-				genSchema(apiTemp)
+				if err := genEndpoint(apiTemp); err != nil {
+					fatal("%v", err)
+				}
+				if err := genService(apiTemp); err != nil {
+					fatal("%v", err)
+				}
+				if err := genSchema(apiTemp); err != nil {
+					fatal("%v", err)
+				}
 				total++
 			}
 		}
 		fmt.Printf("生成完成，共 %d 个接口\n", total)
 	},
-}
-
-func GetPathVar(path string) []string {
-	var paths []string
-	var tmpPathVar string
-	var catch bool
-	for _, v := range path {
-		if catch && v == '}' {
-			catch = false
-			paths = append(paths, tmpPathVar)
-			tmpPathVar = ""
-			continue
-		}
-		if v == '{' {
-			catch = true
-			continue
-		}
-		if catch {
-			tmpPathVar += string(v)
-		}
-	}
-	return paths
 }
