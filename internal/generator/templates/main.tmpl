@@ -1,0 +1,14 @@
+package main
+
+import (
+	ginBoot "github.com/johnpoint/go-bootstrap/gin"
+
+	// Side-effect import: registers all endpoints via their init() functions.
+	_ "{{.ModuleName}}/internal/endpoints"
+)
+
+func main() {
+	if err := ginBoot.Server().Run(); err != nil {
+		panic(err)
+	}
+}

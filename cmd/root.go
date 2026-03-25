@@ -34,6 +34,7 @@ func init() {
 	genApiCommand.Flags().StringVarP(&configFile, "config", "c", "", "声明文件")
 	_ = genApiCommand.MarkFlagRequired("config")
 
+	rootCmd.AddCommand(initCmd)
 	rootCmd.AddCommand(newApiCommand)
 	rootCmd.AddCommand(genApiCommand)
 }

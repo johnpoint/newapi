@@ -32,20 +32,20 @@ type ApiTemp struct {
 
 // GenEndpoint generates the endpoint file for the given API.
 func GenEndpoint(a ApiTemp) error {
-	path := fmt.Sprintf("endpoints/%s_ep.go", CamelCaseToUnderscore(a.ApiName))
+	path := fmt.Sprintf("internal/endpoints/%s_ep.go", CamelCaseToUnderscore(a.ApiName))
 	return generateFile(path, endpointTmpl, a, false)
 }
 
 // GenService generates the service file for the given API.
 func GenService(a ApiTemp) error {
-	path := fmt.Sprintf("services/%s_srv.go", CamelCaseToUnderscore(a.ApiName))
+	path := fmt.Sprintf("internal/services/%s_srv.go", CamelCaseToUnderscore(a.ApiName))
 	return generateFile(path, serviceTmpl, a, false)
 }
 
 // GenSchema generates the schema file for the given API.
 // Schema files are never overwritten once created.
 func GenSchema(a ApiTemp) error {
-	path := fmt.Sprintf("schemas/%s_schema.go", CamelCaseToUnderscore(a.ApiName))
+	path := fmt.Sprintf("internal/schemas/%s_schema.go", CamelCaseToUnderscore(a.ApiName))
 	return generateFile(path, schemaTmpl, a, true)
 }
 
